@@ -1,0 +1,26 @@
+{
+  "name": "mongoose-multitenant",
+  "version": "0.7.0",
+  "description": "Wrapper for Mongoose that allows for easy horizontal multitenancy (collection prefix per tenant)",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "~3.8.3",
+    "mongoose-schema-extend": "~0.1.7",
+    "dot-component": "~0.1.0",
+    "underscore": "~1.5.2"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-exec": "~0.4.3",
+    "grunt-contrib-coffee": "~0.8.0",
+    "grunt-sed": "~0.1.1",
+    "semver": "~2.2.1",
+    "should": "~2.1.1"
+  }
+}
