@@ -78,8 +78,8 @@ mongoose.mtModel = function(name, schema) {
     tenantId = parts[0];
     modelName = parts[1];
     tenantModelName = tenantId + '__' + modelName;
-    if (this.models[tenantModelName] != null) {
-      return this.models[tenantModelName];
+    if (mongoose.models[tenantModelName] != null) {
+      return mongoose.models[tenantModelName];
     }
     origSchema = this.model(modelName).schema;
     newSchema = extendSchemaWithTenantId(tenantId, origSchema);

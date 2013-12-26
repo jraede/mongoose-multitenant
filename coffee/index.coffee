@@ -72,8 +72,8 @@ mongoose.mtModel = (name, schema) ->
 		modelName = parts[1]
 
 		tenantModelName = tenantId + '__' + modelName
-		if @models[tenantModelName]?
-			return @models[tenantModelName]
+		if mongoose.models[tenantModelName]?
+			return mongoose.models[tenantModelName]
 
 		# Otherwise we need to create it
 		origSchema = @model(modelName).schema
