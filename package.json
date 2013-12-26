@@ -1,6 +1,6 @@
 {
   "name": "mongoose-multitenant",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Wrapper for Mongoose that allows for easy horizontal multitenancy (collection prefix per tenant)",
   "main": "index.js",
   "scripts": {

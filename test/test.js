@@ -84,7 +84,7 @@ describe('Multitenant', function() {
   it('should assign tenantId to the schema', function() {
     var fooClass, myFoo;
     fooClass = mongoose.mtModel('tenant1.Foo');
-    myFoo = new fooClass({
+    myFoo = new mongoose.mtModel('tenant1.Foo')({
       title: 'My Foo'
     });
     return myFoo.getTenantId().should.equal('tenant1');

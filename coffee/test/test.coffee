@@ -62,7 +62,7 @@ describe 'Multitenant', ->
 				done()
 	it 'should assign tenantId to the schema', ->
 		fooClass = mongoose.mtModel('tenant1.Foo')
-		myFoo = new fooClass
+		myFoo = new mongoose.mtModel('tenant1.Foo')
 			title:'My Foo'
 		myFoo.getTenantId().should.equal('tenant1')
 
