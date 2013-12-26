@@ -8,7 +8,7 @@ With this package, you can use one schema per model, as you would normally with 
 
 Instead of using `mongoose.model(name, schema)` to compile your model, you would now use `mongoose.mtModel(name, schema)`. This still creates the Mongoose model as normal, but adds some additional functionality. Specifically, you can retrieve a model for a specific tenant using this syntax:
 
-`mongoose.model('tenantId.modelName')`
+`mongoose.mtModel('tenantId.modelName')`
 
 When that happens, the package will check if that model for that tenant has already been compiled. If not, it creates a copy of the base model's schema, updates any `refs` to other collections, and then compiles a new model with the new schema, with a collection name of `tenantId__originalCollectionName`. All per-tenant models are *lazy-loaded*, meaning that they won't take up memory until they are needed.
 
