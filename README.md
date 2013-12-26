@@ -26,17 +26,17 @@ With mongoose-multitenant you use all the same syntax for schema creation as you
 
 ```javascript
 var barSchema = new mongoose.Schema({
-	title:String,
-	_foos:[{
-		type:mongoose.Schema.Types.ObjectId,
-		ref:'Foo',
-		$tenant:true
-	}]
+    title:String,
+    _foos:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Foo',
+        $tenant:true
+    }]
 });
 
 var fooSchema = new mongoose.Schema({
-	title:String,
-	date:Date
+    title:String,
+    date:Date
 });
 ```
 
@@ -54,12 +54,12 @@ Basic usage:
 // This returns a new Foo model for tenant "tenant1"
 var fooConstructor = mongoose.mtModel('tenant1.Foo');
 var myFoo = new fooConstructor({
-	title:'My Foo',
-	date:new Date()
+    title:'My Foo',
+    date:new Date()
 });
 
 myFoo.save(function(err, result) {
-	// This saved it to the collection named "tenant1__foos"
+    // This saved it to the collection named "tenant1__foos"
 });
 ```
 
@@ -67,16 +67,16 @@ And make use of refs/populate:
 ```javascript
 var barConstructor = mongoose.mtModel('tenant1.Bar');
 var myBar = new barConstructor({
-	title:'My Bar'
-	_foos:[myFoo._id]
+    title:'My Bar'
+    _foos:[myFoo._id]
 });
 
 myBar.save(function(err, result) {
-	// Saved to the collection named "tenant1__bars"
+    // Saved to the collection named "tenant1__bars"
 
-	barConstructor.find().populate('foos').exec(function(err, results) {
-		console.log(results[0]._foos[0].title); // "My Foo"
-	});
+    barConstructor.find().populate('foos').exec(function(err, results) {
+        console.log(results[0]._foos[0].title); // "My Foo"
+    });
 });
 ```
 
@@ -84,14 +84,34 @@ But you can't populate across tenancies:
 ```javascript
 var tenant2Bar = mongoose.mtModel('tenant2.Bar');
 var newBar = new tenant2Bar({
-	title:'New Bar',
-	_foos:[myFoo._id]
+    title:'New Bar',
+    _foos:[myFoo._id]
 });
 
 newBar.save(function(err, result) {
-	tenant2Bar.find().populate('foos').exec(function(err, results) {
-		console.log(results[0]._foos[0]); // "undefined"
-	});
+    tenant2Bar.find().populate('foos').exec(function(err, results) {
+        console.log(results[0]._foos[0]); // "undefined"
+    });
+});
+```
+
+## Helper Methods
+In addition to this base functionality, each per-tenant model gets two new schema methods: `getTenantId()` and `getModel()`. 
+
+#### getTenantId()
+This does what you think it does - returns the tenant ID for the model.
+
+#### getModel()
+This can be used in your mongoose middleware methods to get the related model class. E.g.
+
+```javascript
+barSchema.pre('save', function(next) {
+    
+    // This gets Foos in the same tenancy as this Bar
+    this.getModel('Foo').find({_id:{$in:this._foos}}, function(err, foos) {
+        // Do something to the related Foos.
+        next()
+    });
 });
 ```
 
