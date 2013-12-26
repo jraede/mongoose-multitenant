@@ -11,7 +11,8 @@ require 'mongoose-schema-extend'
 dot = require 'dot-component'
 _ = require 'underscore'
 # Add the mtModel
-mongoose.mtModel = (name, schema) ->
+mongoose.mtModel = (name, schema, ignorePrecompile = false) ->
+	precompile = []
 
 	extendPathWithTenantId = (tenantId, path) ->
 
@@ -23,6 +24,7 @@ mongoose.mtModel = (name, schema) ->
 		newPath = 
 			type:mongoose.Schema.Types.ObjectId
 			ref:tenantId + '__' + path.options.ref
+		precompile.push(tenantId + '.' + path.options.ref)
 		return newPath
 
 	extendSchemaWithTenantId = (tenantId, schema) ->
@@ -81,7 +83,14 @@ mongoose.mtModel = (name, schema) ->
 		newSchema.$tenantId = tenantId
 		newSchema.plugin multitenantSchemaPlugin
 
-
+		# Since we're doing lazy loading, a model may not have been compiled
+		# yet when we need it as a ref. So we need to keep track of all refs
+		# that have been modified using the tenant ID prefix and pre-compile
+		# them here to avoid that error.
+		if precompile.length and !ignorePrecompile
+			uniq = _.uniq(precompile)
+			for pre in precompile
+				mongoose.mtModel(pre, null, true)
 		return @model(tenantId + '__' + modelName, newSchema)
 
 	else

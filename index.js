@@ -15,8 +15,12 @@ dot = require('dot-component');
 
 _ = require('underscore');
 
-mongoose.mtModel = function(name, schema) {
-  var extendPathWithTenantId, extendSchemaWithTenantId, modelName, multitenantSchemaPlugin, newSchema, origSchema, parts, tenantId, tenantModelName;
+mongoose.mtModel = function(name, schema, ignorePrecompile) {
+  var extendPathWithTenantId, extendSchemaWithTenantId, modelName, multitenantSchemaPlugin, newSchema, origSchema, parts, pre, precompile, tenantId, tenantModelName, uniq, _i, _len;
+  if (ignorePrecompile == null) {
+    ignorePrecompile = false;
+  }
+  precompile = [];
   extendPathWithTenantId = function(tenantId, path) {
     var newPath;
     if (path.instance !== 'ObjectID') {
@@ -29,6 +33,7 @@ mongoose.mtModel = function(name, schema) {
       type: mongoose.Schema.Types.ObjectId,
       ref: tenantId + '__' + path.options.ref
     };
+    precompile.push(tenantId + '.' + path.options.ref);
     return newPath;
   };
   extendSchemaWithTenantId = function(tenantId, schema) {
@@ -85,6 +90,13 @@ mongoose.mtModel = function(name, schema) {
     newSchema = extendSchemaWithTenantId(tenantId, origSchema);
     newSchema.$tenantId = tenantId;
     newSchema.plugin(multitenantSchemaPlugin);
+    if (precompile.length && !ignorePrecompile) {
+      uniq = _.uniq(precompile);
+      for (_i = 0, _len = precompile.length; _i < _len; _i++) {
+        pre = precompile[_i];
+        mongoose.mtModel(pre, null, true);
+      }
+    }
     return this.model(tenantId + '__' + modelName, newSchema);
   } else {
     return this.model(name, schema);
