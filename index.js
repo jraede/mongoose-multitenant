@@ -75,7 +75,7 @@ mongoose.mtModel = function(name, schema, ignorePrecompile) {
       return this.schema.$tenantId;
     };
     return schema.methods.getModel = function(name) {
-      return mongoose.model(this.getTenantId() + '__' + name);
+      return mongoose.mtModel(this.getTenantId() + '.' + name);
     };
   };
   if (name.indexOf('.') >= 0) {

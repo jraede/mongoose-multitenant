@@ -63,7 +63,7 @@ mongoose.mtModel = (name, schema, ignorePrecompile = false) ->
 		schema.methods.getTenantId = ->
 			return @schema.$tenantId
 		schema.methods.getModel = (name) ->
-			return mongoose.model(@getTenantId() + '__' + name)
+			return mongoose.mtModel(@getTenantId() + '.' + name)
 		
 	# If the name has dot notation, then they want to get that model for that tenant. If it hasn't yet been
 	# defined, then create it using the default schema
