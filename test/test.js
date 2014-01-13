@@ -30,7 +30,8 @@ barSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Foo',
-      $tenant: true
+      $tenant: true,
+      $testytest: 'asdf'
     }
   ],
   subs: [subSchema],
@@ -80,6 +81,10 @@ describe('Multitenant', function() {
         return done();
       });
     });
+  });
+  it('should copy non-mongoose config options through to schema duplicates', function() {
+    mongoose.mtModel('tenant1.Bar').schema.paths.array.caster.options.$tenant.should.equal(true);
+    return mongoose.mtModel('tenant1.Bar').schema.paths.array.caster.options.$testytest.should.equal('asdf');
   });
   it('should assign tenantId to the schema', function() {
     var fooClass, myFoo;

@@ -10,54 +10,57 @@ mongoose = require 'mongoose'
 require 'mongoose-schema-extend'
 dot = require 'dot-component'
 _ = require 'underscore'
+owl = require 'owl-deepcopy'
 # Add the mtModel
 mongoose.mtModel = (name, schema, ignorePrecompile = false) ->
 	precompile = []
 
 	extendPathWithTenantId = (tenantId, path) ->
 
-		if path.instance isnt 'ObjectID'
+		if path.instance isnt 'ObjectID' and path.instance isnt mongoose.Schema.Types.ObjectId
 			return false
 		if !path.options.$tenant? or path.options.$tenant isnt true
 			return false
 
 		newPath = 
 			type:mongoose.Schema.Types.ObjectId
-			ref:tenantId + '__' + path.options.ref
+
+		for key,val of path.options
+			if key isnt 'type'
+				newPath[key] = _.clone(val, true)
+
+		newPath.ref = tenantId + '__' + path.options.ref
+
 		precompile.push(tenantId + '.' + path.options.ref)
 		return newPath
 
 	extendSchemaWithTenantId = (tenantId, schema) ->
 		extension = {}
-
+		newSchema = owl.deepCopy(schema)
 		for prop,config of schema.paths
-			
 			if config.options.type instanceof Array
 				if config.schema?
 					newSubSchema = extendSchemaWithTenantId(tenantId, config.schema)
-					dot.set extension, prop, [newSubSchema]
+					newSubSchema = extendSchemaWithTenantId(tenantId, config.schema)
+					newSchema.path(prop, [newSubSchema])
 				else
 					newPath = extendPathWithTenantId(tenantId, config.caster)
 					if newPath
 						
 
-						dot.set extension, prop, [newPath]
+						newSchema.path(prop, [newPath])
 	
 			else
 				if config.schema?
 					newSubSchema = extendSchemaWithTenantId(tenantId, config.schema)
-					dot.set extension, prop, newSubSchema
+					newSchema.path(prop, newSubSchema)
 				else
 					newPath = extendPathWithTenantId(tenantId, config)
 					if newPath
-						dot.set extension, prop, newPath
+						newSchema.path(prop, newPath)
 
-
-
-		if _.keys(extension).length > 0
-			return schema.extend(extension)
-		else
-			return schema
+		# console.log 'New schema:', newSchema.paths
+		return newSchema
 
 	multitenantSchemaPlugin = (schema, options) ->
 		schema.methods.getTenantId = ->

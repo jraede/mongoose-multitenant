@@ -19,6 +19,7 @@ barSchema = new mongoose.Schema
 			type:mongoose.Schema.Types.ObjectId
 			ref:'Foo'
 			$tenant:true
+			$testytest:'asdf'
 	]
 	subs:[subSchema]
 	single:
@@ -60,6 +61,9 @@ describe 'Multitenant', ->
 				results.length.should.equal(1)
 				results[0].title.should.equal('My Foo')
 				done()
+	it 'should copy non-mongoose config options through to schema duplicates', ->
+		mongoose.mtModel('tenant1.Bar').schema.paths.array.caster.options.$tenant.should.equal(true)
+		mongoose.mtModel('tenant1.Bar').schema.paths.array.caster.options.$testytest.should.equal('asdf')
 	it 'should assign tenantId to the schema', ->
 		fooClass = mongoose.mtModel('tenant1.Foo')
 		myFoo = new mongoose.mtModel('tenant1.Foo')
@@ -94,6 +98,7 @@ describe 'Multitenant', ->
 			subs:[
 					foo:@foo._id
 			]
+
 		myBar.save (err, results) ->
 			mongoose.mtModel('tenant1.Bar').findById(results._id).populate('subs.foo').exec (err, res) ->
 				res.subs[0].foo.title.should.equal('My Foo')

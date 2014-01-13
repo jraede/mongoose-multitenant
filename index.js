@@ -5,7 +5,7 @@ See readme for examples and info
 @author Jason Raede <jason@torchedm.com>
 */
 
-var dot, mongoose, _;
+var dot, mongoose, owl, _;
 
 mongoose = require('mongoose');
 
@@ -15,6 +15,8 @@ dot = require('dot-component');
 
 _ = require('underscore');
 
+owl = require('owl-deepcopy');
+
 mongoose.mtModel = function(name, schema, ignorePrecompile) {
   var extendPathWithTenantId, extendSchemaWithTenantId, modelName, multitenantSchemaPlugin, newSchema, origSchema, parts, pre, precompile, tenantId, tenantModelName, uniq, _i, _len;
   if (ignorePrecompile == null) {
@@ -22,53 +24,58 @@ mongoose.mtModel = function(name, schema, ignorePrecompile) {
   }
   precompile = [];
   extendPathWithTenantId = function(tenantId, path) {
-    var newPath;
-    if (path.instance !== 'ObjectID') {
+    var key, newPath, val, _ref;
+    if (path.instance !== 'ObjectID' && path.instance !== mongoose.Schema.Types.ObjectId) {
       return false;
     }
     if ((path.options.$tenant == null) || path.options.$tenant !== true) {
       return false;
     }
     newPath = {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: tenantId + '__' + path.options.ref
+      type: mongoose.Schema.Types.ObjectId
     };
+    _ref = path.options;
+    for (key in _ref) {
+      val = _ref[key];
+      if (key !== 'type') {
+        newPath[key] = _.clone(val, true);
+      }
+    }
+    newPath.ref = tenantId + '__' + path.options.ref;
     precompile.push(tenantId + '.' + path.options.ref);
     return newPath;
   };
   extendSchemaWithTenantId = function(tenantId, schema) {
-    var config, extension, newPath, newSubSchema, prop, _ref;
+    var config, extension, newPath, newSchema, newSubSchema, prop, _ref;
     extension = {};
+    newSchema = owl.deepCopy(schema);
     _ref = schema.paths;
     for (prop in _ref) {
       config = _ref[prop];
       if (config.options.type instanceof Array) {
         if (config.schema != null) {
           newSubSchema = extendSchemaWithTenantId(tenantId, config.schema);
-          dot.set(extension, prop, [newSubSchema]);
+          newSubSchema = extendSchemaWithTenantId(tenantId, config.schema);
+          newSchema.path(prop, [newSubSchema]);
         } else {
           newPath = extendPathWithTenantId(tenantId, config.caster);
           if (newPath) {
-            dot.set(extension, prop, [newPath]);
+            newSchema.path(prop, [newPath]);
           }
         }
       } else {
         if (config.schema != null) {
           newSubSchema = extendSchemaWithTenantId(tenantId, config.schema);
-          dot.set(extension, prop, newSubSchema);
+          newSchema.path(prop, newSubSchema);
         } else {
           newPath = extendPathWithTenantId(tenantId, config);
           if (newPath) {
-            dot.set(extension, prop, newPath);
+            newSchema.path(prop, newPath);
           }
         }
       }
     }
-    if (_.keys(extension).length > 0) {
-      return schema.extend(extension);
-    } else {
-      return schema;
-    }
+    return newSchema;
   };
   multitenantSchemaPlugin = function(schema, options) {
     schema.methods.getTenantId = function() {
