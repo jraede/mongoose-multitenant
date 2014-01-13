@@ -49,6 +49,16 @@ mongoose.mtModel = function(name, schema, ignorePrecompile) {
     var config, extension, newPath, newSchema, newSubSchema, prop, _ref;
     extension = {};
     newSchema = owl.deepCopy(schema);
+    newSchema.callQueue.forEach(function(k) {
+      var args, key, val, _ref;
+      args = [];
+      _ref = k[1];
+      for (key in _ref) {
+        val = _ref[key];
+        args.push(val);
+      }
+      return k[1] = args;
+    });
     _ref = schema.paths;
     for (prop in _ref) {
       config = _ref[prop];

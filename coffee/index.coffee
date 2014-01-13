@@ -37,6 +37,13 @@ mongoose.mtModel = (name, schema, ignorePrecompile = false) ->
 	extendSchemaWithTenantId = (tenantId, schema) ->
 		extension = {}
 		newSchema = owl.deepCopy(schema)
+		# Fix for callQueue arguments, todo: fix clone implementation
+		newSchema.callQueue.forEach (k) ->
+			args = []
+			for key,val of k[1]
+				args.push(val)
+			k[1] = args
+
 		for prop,config of schema.paths
 			if config.options.type instanceof Array
 				if config.schema?
