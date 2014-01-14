@@ -1,4 +1,4 @@
-var barSchema, bazSchema, fooSchema, mongoose, multitenant, should, subSchema;
+var barSchema, bazSchema, boofSchema, fooSchema, foobSchema, mongoose, multitenant, should, subSchema;
 
 mongoose = require('mongoose');
 
@@ -59,11 +59,33 @@ barSchema = new mongoose.Schema({
   }
 });
 
+foobSchema = new mongoose.Schema({
+  _boof: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Boof',
+    $tenant: true
+  },
+  title: String
+});
+
+boofSchema = new mongoose.Schema({
+  _foob: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Foob',
+    $tenant: true
+  },
+  title: String
+});
+
 mongoose.mtModel('Foo', fooSchema);
 
 mongoose.mtModel('Bar', barSchema);
 
 mongoose.model('Baz', bazSchema);
+
+mongoose.mtModel('Foob', foobSchema);
+
+mongoose.mtModel('Boof', boofSchema);
 
 describe('Multitenant', function() {
   it('should be able to create a foo model for a tenant', function(done) {
@@ -151,7 +173,7 @@ describe('Multitenant', function() {
       });
     });
   });
-  return it('should populate tenant to non-tenant normally', function(done) {
+  it('should populate tenant to non-tenant normally', function(done) {
     var bazClass, myBaz,
       _this = this;
     bazClass = mongoose.model('Baz');
@@ -172,5 +194,10 @@ describe('Multitenant', function() {
         });
       });
     });
+  });
+  return it('should handle precompile with circular references', function(done) {
+    var foobClass;
+    foobClass = mongoose.mtModel('tenant3.Foob');
+    return done();
   });
 });

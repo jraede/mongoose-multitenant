@@ -12,15 +12,15 @@ dot = require 'dot-component'
 _ = require 'underscore'
 owl = require 'owl-deepcopy'
 # Add the mtModel
-mongoose.mtModel = (name, schema, ignorePrecompile = false) ->
+mongoose.mtModel = (name, schema) ->
 	precompile = []
 
 	extendPathWithTenantId = (tenantId, path) ->
-
 		if path.instance isnt 'ObjectID' and path.instance isnt mongoose.Schema.Types.ObjectId
 			return false
 		if !path.options.$tenant? or path.options.$tenant isnt true
 			return false
+
 
 		newPath = 
 			type:mongoose.Schema.Types.ObjectId
@@ -97,10 +97,15 @@ mongoose.mtModel = (name, schema, ignorePrecompile = false) ->
 		# yet when we need it as a ref. So we need to keep track of all refs
 		# that have been modified using the tenant ID prefix and pre-compile
 		# them here to avoid that error.
-		if precompile.length and !ignorePrecompile
+		if mongoose.mtModel.goingToCompile.indexOf(tenantModelName) < 0
+			mongoose.mtModel.goingToCompile.push(tenantModelName)
+		if precompile.length
 			uniq = _.uniq(precompile)
-			for pre in precompile
-				mongoose.mtModel(pre, null, true)
+			for pre in uniq
+				split = pre.split('.')
+				preModelName = split[0] + '__' + split[1]
+				if !mongoose.models[preModelName]? and mongoose.mtModel.goingToCompile.indexOf(preModelName) < 0
+					mongoose.mtModel(pre, null)
 		return @model(tenantId + '__' + modelName, newSchema)
 
 	else
@@ -108,6 +113,6 @@ mongoose.mtModel = (name, schema, ignorePrecompile = false) ->
 
 
 
-
+mongoose.mtModel.goingToCompile = []
 
 	

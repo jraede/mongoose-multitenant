@@ -41,10 +41,26 @@ barSchema = new mongoose.Schema
 		$tenant:false
 
 
+foobSchema = new mongoose.Schema
+	_boof:
+		type:mongoose.Schema.Types.ObjectId
+		ref:'Boof'
+		$tenant:true
+	title:String
+
+boofSchema = new mongoose.Schema
+	_foob:
+		type:mongoose.Schema.Types.ObjectId
+		ref:'Foob'
+		$tenant:true
+	title:String
 
 mongoose.mtModel('Foo', fooSchema)
 mongoose.mtModel('Bar', barSchema)
 mongoose.model('Baz', bazSchema)
+
+mongoose.mtModel('Foob', foobSchema)
+mongoose.mtModel('Boof', boofSchema)
 
 
 
@@ -127,5 +143,9 @@ describe 'Multitenant', ->
 				mongoose.mtModel('tenant3.Bar').findById(results._id).populate('notTenant').exec (err, res) ->
 					res.notTenant.title.should.equal('My Baz')
 					done()
+
+	it 'should handle precompile with circular references', (done) ->
+		foobClass = mongoose.mtModel('tenant3.Foob')
+		done()
 
 
