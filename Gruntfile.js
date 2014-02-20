@@ -1,6 +1,6 @@
 
 var f, semver;
-
+var fs = require('fs');
 semver = require('semver');
 
 f = require('util').format;
@@ -19,8 +19,11 @@ module.exports = function(grunt) {
 		},
 		exec:{
 			test: {
-				cmd:'NODE_ENV=test mocha'
+				cmd:function(ex) {
+					return f('NODE_ENV=test mocha %s', ex)
+				}
 			}
+			
 		},
 		coffee: {
 			source:{
@@ -58,5 +61,23 @@ module.exports = function(grunt) {
 		});
 	});
 
-	grunt.registerTask('test', ['dropTestDb', 'exec:test']);
+	grunt.registerTask('test', 'Run tests', function(test) {
+		var tasks = []
+		var files = fs.readdirSync('test');
+		var file;
+
+		if(test) {
+			tasks.push('exec:test:"test/' + test + '.js' + '"')
+			tasks.push('dropTestDb')
+		}
+		else {
+			for(var i=0;i<files.length;i++) {
+				file = files[i];
+				tasks.push('exec:test:"test/' + file + '"')
+				tasks.push('dropTestDb')
+			}
+		}
+		
+		grunt.task.run(tasks);
+	});
 };

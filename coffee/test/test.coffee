@@ -3,6 +3,7 @@ should = require 'should'
 multitenant = require '../index'
 
 mongoose.connect 'mongodb://localhost/multitenant_test'
+
 fooSchema = new mongoose.Schema
 	title:String
 
@@ -77,6 +78,20 @@ describe 'Multitenant', ->
 				results.length.should.equal(1)
 				results[0].title.should.equal('My Foo')
 				done()
+
+	it 'should be able to create a foo model for a tenant with a . in its name', (done) ->
+		fooClass = mongoose.mtModel('dottenant.org.Foo')
+
+		myFoo = new fooClass
+			title:'My Foo'
+
+		myFoo.save (err, results) =>
+			mongoose.mtModel('dottenant.org.Foo').find (err, results) ->
+				results.length.should.equal(1)
+				results[0].title.should.equal('My Foo')
+				done()
+
+
 	it 'should copy non-mongoose config options through to schema duplicates', ->
 		mongoose.mtModel('tenant1.Bar').schema.paths.array.caster.options.$tenant.should.equal(true)
 		mongoose.mtModel('tenant1.Bar').schema.paths.array.caster.options.$testytest.should.equal('asdf')

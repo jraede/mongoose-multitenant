@@ -11,6 +11,16 @@ require 'mongoose-schema-extend'
 dot = require 'dot-component'
 _ = require 'underscore'
 owl = require 'owl-deepcopy'
+
+###
+Added by @watnotte
+###
+collectionDelimiter = collectionDelimiter
+
+module.exports = (delimiter) ->
+	if delimiter
+		collectionDelimiter = delimiter
+
 # Add the mtModel
 mongoose.mtModel = (name, schema) ->
 	precompile = []
@@ -29,7 +39,7 @@ mongoose.mtModel = (name, schema) ->
 			if key isnt 'type'
 				newPath[key] = _.clone(val, true)
 
-		newPath.ref = tenantId + '__' + path.options.ref
+		newPath.ref = tenantId + collectionDelimiter + path.options.ref
 
 		precompile.push(tenantId + '.' + path.options.ref)
 		return newPath
@@ -80,10 +90,12 @@ mongoose.mtModel = (name, schema) ->
 	
 	if name.indexOf('.') >= 0
 		parts = name.split('.')
-		tenantId = parts[0]
-		modelName = parts[1]
 
-		tenantModelName = tenantId + '__' + modelName
+		# In case tenant ID has a "."
+		modelName = parts.pop()
+		tenantId = parts.join('.')
+
+		tenantModelName = tenantId + collectionDelimiter + modelName
 		if mongoose.models[tenantModelName]?
 			return mongoose.models[tenantModelName]
 
@@ -103,10 +115,10 @@ mongoose.mtModel = (name, schema) ->
 			uniq = _.uniq(precompile)
 			for pre in uniq
 				split = pre.split('.')
-				preModelName = split[0] + '__' + split[1]
+				preModelName = split[0] + collectionDelimiter + split[1]
 				if !mongoose.models[preModelName]? and mongoose.mtModel.goingToCompile.indexOf(preModelName) < 0
 					mongoose.mtModel(pre, null)
-		return @model(tenantId + '__' + modelName, newSchema)
+		return @model(tenantId + collectionDelimiter + modelName, newSchema)
 
 	else
 		return @model(name, schema)

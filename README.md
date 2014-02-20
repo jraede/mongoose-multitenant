@@ -12,6 +12,9 @@ Instead of using `mongoose.model(name, schema)` to compile your model, you would
 
 When that happens, the package will check if that model for that tenant has already been compiled. If not, it creates a copy of the base model's schema, updates any `refs` to other collections, and then compiles a new model with the new schema, with a collection name of `tenantId__originalCollectionName`. All per-tenant models are *lazy-loaded*, meaning that they won't take up memory until they are needed.
 
+
+
+
 ## Usage
 #### Pull in requirements
 ```javascript
@@ -19,6 +22,13 @@ var mongoose = require('mongoose');
 require('mongoose-multitenant');
 
 mongoose.connect('mongodb://localhost/multitenant');
+```
+
+#### Changing collection delimiter
+Thanks to @watnotte for this - if you want to change the delimiter from the default `__` you can do the following:
+
+```javascript
+require('mongoose-multitenant')('CUSTOM_DELIMITER');
 ```
 
 #### Create a schema

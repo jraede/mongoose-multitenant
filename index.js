@@ -5,7 +5,7 @@ See readme for examples and info
 @author Jason Raede <jason@torchedm.com>
 */
 
-var dot, mongoose, owl, _;
+var collectionDelimiter, dot, mongoose, owl, _;
 
 mongoose = require('mongoose');
 
@@ -16,6 +16,19 @@ dot = require('dot-component');
 _ = require('underscore');
 
 owl = require('owl-deepcopy');
+
+/*
+Added by @watnotte
+*/
+
+
+collectionDelimiter = collectionDelimiter;
+
+module.exports = function(delimiter) {
+  if (delimiter) {
+    return collectionDelimiter = delimiter;
+  }
+};
 
 mongoose.mtModel = function(name, schema) {
   var extendPathWithTenantId, extendSchemaWithTenantId, modelName, multitenantSchemaPlugin, newSchema, origSchema, parts, pre, preModelName, precompile, split, tenantId, tenantModelName, uniq, _i, _len;
@@ -38,7 +51,7 @@ mongoose.mtModel = function(name, schema) {
         newPath[key] = _.clone(val, true);
       }
     }
-    newPath.ref = tenantId + '__' + path.options.ref;
+    newPath.ref = tenantId + collectionDelimiter + path.options.ref;
     precompile.push(tenantId + '.' + path.options.ref);
     return newPath;
   };
@@ -94,9 +107,9 @@ mongoose.mtModel = function(name, schema) {
   };
   if (name.indexOf('.') >= 0) {
     parts = name.split('.');
-    tenantId = parts[0];
-    modelName = parts[1];
-    tenantModelName = tenantId + '__' + modelName;
+    modelName = parts.pop();
+    tenantId = parts.join('.');
+    tenantModelName = tenantId + collectionDelimiter + modelName;
     if (mongoose.models[tenantModelName] != null) {
       return mongoose.models[tenantModelName];
     }
@@ -112,13 +125,13 @@ mongoose.mtModel = function(name, schema) {
       for (_i = 0, _len = uniq.length; _i < _len; _i++) {
         pre = uniq[_i];
         split = pre.split('.');
-        preModelName = split[0] + '__' + split[1];
+        preModelName = split[0] + collectionDelimiter + split[1];
         if ((mongoose.models[preModelName] == null) && mongoose.mtModel.goingToCompile.indexOf(preModelName) < 0) {
           mongoose.mtModel(pre, null);
         }
       }
     }
-    return this.model(tenantId + '__' + modelName, newSchema);
+    return this.model(tenantId + collectionDelimiter + modelName, newSchema);
   } else {
     return this.model(name, schema);
   }

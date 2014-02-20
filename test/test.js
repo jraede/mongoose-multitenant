@@ -104,6 +104,21 @@ describe('Multitenant', function() {
       });
     });
   });
+  it('should be able to create a foo model for a tenant with a . in its name', function(done) {
+    var fooClass, myFoo,
+      _this = this;
+    fooClass = mongoose.mtModel('dottenant.org.Foo');
+    myFoo = new fooClass({
+      title: 'My Foo'
+    });
+    return myFoo.save(function(err, results) {
+      return mongoose.mtModel('dottenant.org.Foo').find(function(err, results) {
+        results.length.should.equal(1);
+        results[0].title.should.equal('My Foo');
+        return done();
+      });
+    });
+  });
   it('should copy non-mongoose config options through to schema duplicates', function() {
     mongoose.mtModel('tenant1.Bar').schema.paths.array.caster.options.$tenant.should.equal(true);
     return mongoose.mtModel('tenant1.Bar').schema.paths.array.caster.options.$testytest.should.equal('asdf');
