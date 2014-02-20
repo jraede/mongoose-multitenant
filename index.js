@@ -17,11 +17,16 @@ _ = require('underscore');
 
 owl = require('owl-deepcopy');
 
-mongoose.mtModel = function(name, schema, collectionDelimiter) {
+var collectionDelimiter = '__';
 
-  if(!collectionDelimiter){
-      collectionDelimiter = '__';
-  }
+module.exports = function(delimiter){
+    if(delimiter){
+        collectionDelimiter = delimiter;
+    }
+};
+
+mongoose.mtModel = function(name, schema) {
+
   var extendPathWithTenantId, extendSchemaWithTenantId, modelName, multitenantSchemaPlugin, newSchema, origSchema, parts, pre, preModelName, precompile, split, tenantId, tenantModelName, uniq, _i, _len;
   precompile = [];
   extendPathWithTenantId = function(tenantId, path) {
