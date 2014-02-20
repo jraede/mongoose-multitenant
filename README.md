@@ -1,5 +1,6 @@
 Mongoose Multitenant
 =====================
+[![Build Status](https://travis-ci.org/jraede/mongoose-multitenant.png?branch=v0.8.0)](https://travis-ci.org/jraede/mongoose-multitenant)
 
 This package facilitates horizontal multitenancy in one MongoDB database, obviously using Mongoose as the interaction layer. 
 
