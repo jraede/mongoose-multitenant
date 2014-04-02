@@ -104,6 +104,10 @@ describe('Multitenant', function() {
       });
     });
   });
+  it('collection should be named tenant1__Foos', function(done) {
+    mongoose.mtModel('tenant1.Foo').collection.name.should.equal('tenant1__foos');
+    return done();
+  });
   it('should be able to create a foo model for a tenant with a . in its name', function(done) {
     var fooClass, myFoo,
       _this = this;

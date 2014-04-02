@@ -22,7 +22,7 @@ Added by @watnotte
 */
 
 
-collectionDelimiter = collectionDelimiter;
+collectionDelimiter = '__';
 
 module.exports = function(delimiter) {
   if (delimiter) {

@@ -15,7 +15,7 @@ owl = require 'owl-deepcopy'
 ###
 Added by @watnotte
 ###
-collectionDelimiter = collectionDelimiter
+collectionDelimiter = '__'
 
 module.exports = (delimiter) ->
 	if delimiter

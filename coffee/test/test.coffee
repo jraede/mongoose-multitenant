@@ -79,6 +79,10 @@ describe 'Multitenant', ->
 				results[0].title.should.equal('My Foo')
 				done()
 
+	it 'collection should be named tenant1__Foos', (done) ->
+		mongoose.mtModel('tenant1.Foo').collection.name.should.equal('tenant1__foos')
+		done()
+
 	it 'should be able to create a foo model for a tenant with a . in its name', (done) ->
 		fooClass = mongoose.mtModel('dottenant.org.Foo')
 
