@@ -22,7 +22,7 @@ module.exports = (delimiter) ->
 		collectionDelimiter = delimiter
 
 # Add the mtModel
-mongoose.mtModel = (name, schema) ->
+mongoose.mtModel = (name, schema, collectionName) ->
 	precompile = []
 
 	extendPathWithTenantId = (tenantId, path) ->
@@ -99,8 +99,12 @@ mongoose.mtModel = (name, schema) ->
 		if mongoose.models[tenantModelName]?
 			return mongoose.models[tenantModelName]
 
+		model = @model(modelName);
+
+		tenantCollectionName = tenantId + collectionDelimiter + model.collection.name
+
 		# Otherwise we need to create it
-		origSchema = @model(modelName).schema
+		origSchema = model.schema
 		newSchema = extendSchemaWithTenantId(tenantId, origSchema)
 		newSchema.$tenantId = tenantId
 		newSchema.plugin multitenantSchemaPlugin
@@ -117,11 +121,11 @@ mongoose.mtModel = (name, schema) ->
 				split = pre.split('.')
 				preModelName = split[0] + collectionDelimiter + split[1]
 				if !mongoose.models[preModelName]? and mongoose.mtModel.goingToCompile.indexOf(preModelName) < 0
-					mongoose.mtModel(pre, null)
-		return @model(tenantId + collectionDelimiter + modelName, newSchema)
+					mongoose.mtModel(pre, null, tenantCollectionName)
+		return @model(tenantModelName, newSchema, tenantCollectionName)
 
 	else
-		return @model(name, schema)
+		return @model(name, schema, collectionName)
 
 
 
