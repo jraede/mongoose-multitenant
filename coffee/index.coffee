@@ -80,9 +80,9 @@ mongoose.mtModel = (name, schema, collectionName) ->
 		return newSchema
 
 	multitenantSchemaPlugin = (schema, options) ->
-		schema.methods.getTenantId = ->
+		schema.statics.getTenantId = schema.methods.getTenantId = ->
 			return @schema.$tenantId
-		schema.methods.getModel = (name) ->
+		schema.statics.getModel = schema.methods.getModel = (name) ->
 			return mongoose.mtModel(@getTenantId() + '.' + name)
 		
 	# If the name has dot notation, then they want to get that model for that tenant. If it hasn't yet been

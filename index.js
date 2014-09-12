@@ -98,10 +98,10 @@ mongoose.mtModel = function(name, schema, collectionName) {
     return newSchema;
   };
   multitenantSchemaPlugin = function(schema, options) {
-    schema.methods.getTenantId = function() {
+    schema.statics.getTenantId = schema.methods.getTenantId = function() {
       return this.schema.$tenantId;
     };
-    return schema.methods.getModel = function(name) {
+    return schema.statics.getModel = schema.methods.getModel = function(name) {
       return mongoose.mtModel(this.getTenantId() + '.' + name);
     };
   };
