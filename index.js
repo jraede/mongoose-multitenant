@@ -30,8 +30,8 @@ module.exports = function(delimiter) {
   }
 };
 
-mongoose.mtModel = function(name, schema) {
-  var extendPathWithTenantId, extendSchemaWithTenantId, modelName, multitenantSchemaPlugin, newSchema, origSchema, parts, pre, preModelName, precompile, split, tenantId, tenantModelName, uniq, _i, _len;
+mongoose.mtModel = function(name, schema, collectionName) {
+  var extendPathWithTenantId, extendSchemaWithTenantId, model, modelName, multitenantSchemaPlugin, newSchema, origSchema, parts, pre, preModelName, precompile, split, tenantCollectionName, tenantId, tenantModelName, uniq, _i, _len;
   precompile = [];
   extendPathWithTenantId = function(tenantId, path) {
     var key, newPath, val, _ref;
@@ -98,10 +98,10 @@ mongoose.mtModel = function(name, schema) {
     return newSchema;
   };
   multitenantSchemaPlugin = function(schema, options) {
-    schema.methods.getTenantId = function() {
+    schema.statics.getTenantId = schema.methods.getTenantId = function() {
       return this.schema.$tenantId;
     };
-    return schema.methods.getModel = function(name) {
+    return schema.statics.getModel = schema.methods.getModel = function(name) {
       return mongoose.mtModel(this.getTenantId() + '.' + name);
     };
   };
@@ -113,7 +113,9 @@ mongoose.mtModel = function(name, schema) {
     if (mongoose.models[tenantModelName] != null) {
       return mongoose.models[tenantModelName];
     }
-    origSchema = this.model(modelName).schema;
+    model = this.model(modelName);
+    tenantCollectionName = tenantId + collectionDelimiter + model.collection.name;
+    origSchema = model.schema;
     newSchema = extendSchemaWithTenantId(tenantId, origSchema);
     newSchema.$tenantId = tenantId;
     newSchema.plugin(multitenantSchemaPlugin);
@@ -127,13 +129,13 @@ mongoose.mtModel = function(name, schema) {
         split = pre.split('.');
         preModelName = split[0] + collectionDelimiter + split[1];
         if ((mongoose.models[preModelName] == null) && mongoose.mtModel.goingToCompile.indexOf(preModelName) < 0) {
-          mongoose.mtModel(pre, null);
+          mongoose.mtModel(pre, null, tenantCollectionName);
         }
       }
     }
-    return this.model(tenantId + collectionDelimiter + modelName, newSchema);
+    return this.model(tenantModelName, newSchema, tenantCollectionName);
   } else {
-    return this.model(name, schema);
+    return this.model(name, schema, collectionName);
   }
 };
 
