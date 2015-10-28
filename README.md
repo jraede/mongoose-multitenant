@@ -20,17 +20,45 @@ When that happens, the package will check if that model for that tenant has alre
 #### Pull in requirements
 ```javascript
 var mongoose = require('mongoose');
-require('mongoose-multitenant');
+var multitenant = require('mongoose-multitenant');
 
 mongoose.connect('mongodb://localhost/multitenant');
+multitenant.setup();
 ```
 
 #### Changing collection delimiter
 Thanks to @watnotte for this - if you want to change the delimiter from the default `__` you can do the following:
 
 ```javascript
-require('mongoose-multitenant')('CUSTOM_DELIMITER');
+var multitenant = require('mongoose-multitenant')
+multitenant.setup('CUSTOM_DELIMITER');
 ```
+
+#### Using custom or multiple connections
+This library also supports using `mtModel` on a non-default connection.  Note that the schema must be compiled on every connection.
+
+```javascript
+var mongoose = require('mongoose'),
+    multitenant = require('mongoose-multitenant');
+
+var schema = new mongoose.Schema({...});
+var connection = mongoose.createConnection('mongodb://localhost/example');
+multitenant.setup(connection);
+var multitenantModel = connection.mtModel('SomeModel', schema);
+var tenantModel = connection('tenant.SomeModel');
+```
+
+The `setup` method can take both a connection and a delimiter, for example:
+
+```javascript
+var mongoose = require('mongoose'),
+    multitenant = require('mongoose-multitenant');
+
+var connection = mongoose.createConnection('mongodb://localhost/example');
+multitenant.setup(connection, 'CUSTOM_DELIMTER');
+```
+
+The `setup` method will default to using the `mongoose` default connection if one is not specified.
 
 #### Create a schema
 With mongoose-multitenant you use all the same syntax for schema creation as you normally do with Mongoose, with the addition of the `$tenant` property on document references. This tells the system whether it is a reference to a document for the same tenant (`true`) or a root-level document without a tenant (`false`)
