@@ -4,9 +4,11 @@ mongoose = require('mongoose');
 
 should = require('should');
 
-multitenant = require('../index')('____');
+multitenant = require('../index');
 
 mongoose.connect('mongodb://localhost/multitenant_test');
+
+multitenant.setup('____');
 
 fooSchema = new mongoose.Schema({
   title: String
