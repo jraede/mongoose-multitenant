@@ -39,9 +39,9 @@
     "grunt-sed": "~0.1.1",
     "semver": "~2.2.1",
     "should": "~2.1.1",
-    "mongoose": "~3.8.3"
+    "mongoose": "~4.0.7"
   },
   "peerDependencies": {
-    "mongoose": ">=3.x"
+    "mongoose": ">=4.x"
   }
 }

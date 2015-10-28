@@ -1,7 +1,9 @@
 
-var f, semver;
+var f, semver, async, _;
 var fs = require('fs');
 semver = require('semver');
+async = require('async');
+_ = require('underscore');
 
 f = require('util').format;
 module.exports = function(grunt) {
@@ -48,16 +50,26 @@ module.exports = function(grunt) {
 	grunt.registerTask('dropTestDb', function() {
 		var mongoose = require('mongoose');
 		var done = this.async();
-		mongoose.connect('mongodb://localhost/multitenant_test')
-		mongoose.connection.on('open', function () { 
-			mongoose.connection.db.dropDatabase(function(err) {
-				if(err) {
-					console.log(err);
-				} else {
-					console.log('Successfully dropped db');
-				}
-				mongoose.connection.close(done);
-			});
+
+		async.series(_.map([
+			'mongodb://localhost/multitenant_test_one',
+			'mongodb://localhost/multitenant_test_two',
+			'mongodb://localhost/multitenant_test'
+		], function(db){
+			return function(cb){
+				mongoose.connect(db, function(){
+					mongoose.connection.db.dropDatabase(function(err){
+						if(err){
+							console.log(err);
+						}else{
+							console.log('Successfully dropped %s', db);
+						}
+						mongoose.connection.close(cb);
+					});
+				});
+			};
+		}), function(err){
+			done();
 		});
 	});
 
