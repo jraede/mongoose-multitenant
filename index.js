@@ -24,7 +24,8 @@ module.exports = {
   collectionDelimiter: '__',
   connection: mongoose,
   setup: function() {
-    var collectionDelimiter, connection;
+    var collectionDelimiter, connection, self;
+    self = this;
     if (arguments.length === 1 && arguments[0]) {
       if (_.isString(arguments[0])) {
         this.collectionDelimiter = arguments[0];
@@ -47,7 +48,7 @@ module.exports = {
     connection = this.connection;
     collectionDelimiter = this.collectionDelimiter;
     connection.mtModel = function(name, schema, collectionName) {
-      var extendPathWithTenantId, extendSchemaWithTenantId, make, modelName, multitenantSchemaPlugin, parts, precompile, tenantId;
+      var args, extendPathWithTenantId, extendSchemaWithTenantId, make, modelName, multitenantSchemaPlugin, parts, precompile, tenantId, tenants;
       precompile = [];
       extendPathWithTenantId = function(tenantId, path) {
         var key, newPath, val, _ref;
@@ -125,6 +126,11 @@ module.exports = {
       };
       make = function(tenantId, modelName) {
         var model, newSchema, origSchema, pre, preModelName, tenantCollectionName, tenantModelName, uniq, _i, _len;
+        console.log('making %s for %s', modelName, tenantId);
+        if (connection.mtModel.tenants.indexOf(tenantId) === -1) {
+          console.log('adding %s', tenantId);
+          connection.mtModel.tenants.push(tenantId);
+        }
         tenantModelName = tenantId + collectionDelimiter + modelName;
         if (connection.models[tenantModelName] != null) {
           return connection.models[tenantModelName];
@@ -152,9 +158,21 @@ module.exports = {
         return this.model(tenantModelName, newSchema, tenantCollectionName);
       };
       if (arguments.length === 1) {
-        parts = arguments[0].split('.');
-        modelName = parts.pop();
-        tenantId = parts.join('.');
+        tenants = _.sortBy(connection.mtModel.tenants, function(tenant) {
+          return tenant.length;
+        });
+        tenants.reverse();
+        args = arguments;
+        tenantId = _.find(tenants, function(tenant) {
+          return new RegExp('^' + tenant + '.').test(args[0]);
+        });
+        if (!tenantId) {
+          parts = arguments[0].split('.');
+          modelName = parts.pop();
+          tenantId = parts.join('.');
+        } else {
+          modelName = arguments[0].slice(tenantId.length + 1);
+        }
         return make.call(this, tenantId, modelName);
       } else if (arguments.length === 2) {
         if (arguments[1] instanceof mongoose.Schema) {
@@ -162,12 +180,17 @@ module.exports = {
         } else {
           return make.call(this, arguments[0], arguments[1]);
         }
-      } else if (aguments.length === 3) {
+      } else if (arguments.length === 3) {
         return this.model(arguments[0], arguments[1], arguments[2]);
       } else {
         throw new Error('invalid arguments');
       }
     };
-    return connection.mtModel.goingToCompile = [];
+    connection.mtModel.goingToCompile = [];
+    connection.mtModel.tenants = [];
+    return connection.mtModel.addTenant = function(tenantId) {
+      console.log('adding tenant %s', tenantId);
+      return connection.mtModel.tenants.push(tenantId);
+    };
   }
 };

@@ -67,20 +67,20 @@ mongoose.mtModel('Boof.Boof', boofSchema)
 
 describe 'Multitenant', ->
 	it 'should be able to create a foo model for a tenant', (done) ->
-		fooClass = mongoose.mtModel('tenant1', 'Foo.Foo')
+		fooClass = mongoose.mtModel('tenant1.subname', 'Foo.Foo')
 
 		myFoo = new fooClass
 			title:'My Foo'
 
 		myFoo.save (err, results) =>
 			@foo = results
-			mongoose.mtModel('tenant1', 'Foo.Foo').find (err, results) ->
+			mongoose.mtModel('tenant1.subname', 'Foo.Foo').find (err, results) ->
 				results.length.should.equal(1)
 				results[0].title.should.equal('My Foo')
 				done()
 
-	it 'collection should be named tenant1__foos.foos', (done) ->
-		mongoose.mtModel('tenant1', 'Foo.Foo').collection.name.should.equal('tenant1__foo.foos')
+	it 'collection should be named tenant1.subname__foos.foos', (done) ->
+		mongoose.mtModel('tenant1.subname', 'Foo.Foo').collection.name.should.equal('tenant1.subname__foo.foos')
 		done()
 
 	it 'should be able to create a foo model for a tenant with a . in its name', (done) ->
@@ -97,13 +97,13 @@ describe 'Multitenant', ->
 
 
 	it 'should copy non-mongoose config options through to schema duplicates', ->
-		mongoose.mtModel('tenant1', 'Bar.Bar').schema.paths.array.caster.options.$tenant.should.equal(true)
-		mongoose.mtModel('tenant1', 'Bar.Bar').schema.paths.array.caster.options.$testytest.should.equal('asdf')
+		mongoose.mtModel('tenant1.subname', 'Bar.Bar').schema.paths.array.caster.options.$tenant.should.equal(true)
+		mongoose.mtModel('tenant1.subname', 'Bar.Bar').schema.paths.array.caster.options.$testytest.should.equal('asdf')
 	it 'should assign tenantId to the schema', ->
-		fooClass = mongoose.mtModel('tenant1', 'Foo.Foo')
-		myFoo = new mongoose.mtModel('tenant1', 'Foo.Foo')
+		fooClass = mongoose.mtModel('tenant1.subname', 'Foo.Foo')
+		myFoo = new mongoose.mtModel('tenant1.subname', 'Foo.Foo')
 			title:'My Foo'
-		myFoo.getTenantId().should.equal('tenant1')
+		myFoo.getTenantId().should.equal('tenant1.subname')
 
 	it 'should be able to create a foo model for a second tenant', (done) ->
 		fooClass = mongoose.mtModel('tenant2', 'Foo.Foo')
@@ -118,24 +118,24 @@ describe 'Multitenant', ->
 
 	# Now the crazy stuff
 	it 'should handle array references per tenant', (done) ->
-		barClass = mongoose.mtModel('tenant1', 'Bar.Bar')
+		barClass = mongoose.mtModel('tenant1.subname', 'Bar.Bar')
 		myBar = new barClass
 			array:[@foo._id]
 
 		myBar.save (err, results) ->
-			mongoose.mtModel('tenant1', 'Bar.Bar').findById(results._id).populate('array').exec (err, res) ->
+			mongoose.mtModel('tenant1.subname', 'Bar.Bar').findById(results._id).populate('array').exec (err, res) ->
 				res.array[0].title.should.equal('My Foo')
 				done()
 
 	it 'should handle sub schema per tenant', (done) ->
-		barClass = mongoose.mtModel('tenant1', 'Bar.Bar')
+		barClass = mongoose.mtModel('tenant1.subname', 'Bar.Bar')
 		myBar = new barClass
 			subs:[
 					foo:@foo._id
 			]
 
 		myBar.save (err, results) ->
-			mongoose.mtModel('tenant1', 'Bar.Bar').findById(results._id).populate('subs.foo').exec (err, res) ->
+			mongoose.mtModel('tenant1.subname', 'Bar.Bar').findById(results._id).populate('subs.foo').exec (err, res) ->
 				res.subs[0].foo.title.should.equal('My Foo')
 				done()
 	it 'should not populate refs to collections outside of tenancy', (done) ->

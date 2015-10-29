@@ -18,7 +18,9 @@ Added by @watnotte
 module.exports = 
 	collectionDelimiter: '__',
 	connection: mongoose,
+	
 	setup: () ->
+		self = @
 		if arguments.length == 1 and arguments[0]
 			if _.isString(arguments[0])
 				@collectionDelimiter = arguments[0]
@@ -101,6 +103,10 @@ module.exports =
 					return connection.mtModel(@getTenantId() + '.' + name)
 			
 			make = (tenantId, modelName) ->
+				console.log 'making %s for %s', modelName, tenantId
+				if connection.mtModel.tenants.indexOf(tenantId) == -1
+					console.log 'adding %s', tenantId
+					connection.mtModel.tenants.push(tenantId)
 				tenantModelName = tenantId + collectionDelimiter + modelName
 				if connection.models[tenantModelName]?
 					return connection.models[tenantModelName]
@@ -131,12 +137,25 @@ module.exports =
 				return @model(tenantModelName, newSchema, tenantCollectionName)
 				
 			if arguments.length == 1
-				# If the name has dot notation, then they want to get that model for that tenant. If it hasn't yet been
-				# defined, then create it using the default schema
-				parts = arguments[0].split('.')
-				modelName = parts.pop()
-				tenantId = parts.join('.')
-				make.call(this, tenantId, modelName)
+				# try to figure out what tenant this is for
+				tenants = _.sortBy connection.mtModel.tenants, (tenant) ->
+					return tenant.length
+				tenants.reverse()
+				
+				args = arguments
+				tenantId = _.find tenants, (tenant) ->
+					return new RegExp('^'+tenant + '.').test(args[0])
+
+				if !tenantId
+					# If the name has dot notation, then they want to get that model for that tenant. If it hasn't yet been
+					# defined, then create it using the default schema
+					parts = arguments[0].split('.')
+					modelName = parts.pop()
+					tenantId = parts.join('.')
+				else
+					# the modelname should be the tenantid's length plus a period
+					modelName = arguments[0].slice(tenantId.length + 1)
+				return make.call(this, tenantId, modelName)
 			else if arguments.length == 2
 				# if the second argument is a mongoose schema, treat as a plain old mongoose model
 				# otherwise, the tenant and collection are explicitly passed
@@ -144,10 +163,15 @@ module.exports =
 					return @model(arguments[0], arguments[1])
 				else
 					return make.call(this, arguments[0], arguments[1])
-			else if aguments.length == 3
+			else if arguments.length == 3
 				# plain old mongoose model
 				return @model(arguments[0], arguments[1], arguments[2])
 			else
 				throw new Error('invalid arguments')
 
 		connection.mtModel.goingToCompile = []
+		connection.mtModel.tenants = []
+		connection.mtModel.addTenant = (tenantId) ->
+			console.log 'adding tenant %s', tenantId
+			connection.mtModel.tenants.push(tenantId)
+

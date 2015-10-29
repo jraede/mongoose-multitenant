@@ -93,21 +93,21 @@ describe('Multitenant', function() {
   it('should be able to create a foo model for a tenant', function(done) {
     var fooClass, myFoo,
       _this = this;
-    fooClass = mongoose.mtModel('tenant1', 'Foo.Foo');
+    fooClass = mongoose.mtModel('tenant1.subname', 'Foo.Foo');
     myFoo = new fooClass({
       title: 'My Foo'
     });
     return myFoo.save(function(err, results) {
       _this.foo = results;
-      return mongoose.mtModel('tenant1', 'Foo.Foo').find(function(err, results) {
+      return mongoose.mtModel('tenant1.subname', 'Foo.Foo').find(function(err, results) {
         results.length.should.equal(1);
         results[0].title.should.equal('My Foo');
         return done();
       });
     });
   });
-  it('collection should be named tenant1__foos.foos', function(done) {
-    mongoose.mtModel('tenant1', 'Foo.Foo').collection.name.should.equal('tenant1__foo.foos');
+  it('collection should be named tenant1.subname__foos.foos', function(done) {
+    mongoose.mtModel('tenant1.subname', 'Foo.Foo').collection.name.should.equal('tenant1.subname__foo.foos');
     return done();
   });
   it('should be able to create a foo model for a tenant with a . in its name', function(done) {
@@ -126,16 +126,16 @@ describe('Multitenant', function() {
     });
   });
   it('should copy non-mongoose config options through to schema duplicates', function() {
-    mongoose.mtModel('tenant1', 'Bar.Bar').schema.paths.array.caster.options.$tenant.should.equal(true);
-    return mongoose.mtModel('tenant1', 'Bar.Bar').schema.paths.array.caster.options.$testytest.should.equal('asdf');
+    mongoose.mtModel('tenant1.subname', 'Bar.Bar').schema.paths.array.caster.options.$tenant.should.equal(true);
+    return mongoose.mtModel('tenant1.subname', 'Bar.Bar').schema.paths.array.caster.options.$testytest.should.equal('asdf');
   });
   it('should assign tenantId to the schema', function() {
     var fooClass, myFoo;
-    fooClass = mongoose.mtModel('tenant1', 'Foo.Foo');
-    myFoo = new mongoose.mtModel('tenant1', 'Foo.Foo')({
+    fooClass = mongoose.mtModel('tenant1.subname', 'Foo.Foo');
+    myFoo = new mongoose.mtModel('tenant1.subname', 'Foo.Foo')({
       title: 'My Foo'
     });
-    return myFoo.getTenantId().should.equal('tenant1');
+    return myFoo.getTenantId().should.equal('tenant1.subname');
   });
   it('should be able to create a foo model for a second tenant', function(done) {
     var fooClass, myFoo;
@@ -153,12 +153,12 @@ describe('Multitenant', function() {
   });
   it('should handle array references per tenant', function(done) {
     var barClass, myBar;
-    barClass = mongoose.mtModel('tenant1', 'Bar.Bar');
+    barClass = mongoose.mtModel('tenant1.subname', 'Bar.Bar');
     myBar = new barClass({
       array: [this.foo._id]
     });
     return myBar.save(function(err, results) {
-      return mongoose.mtModel('tenant1', 'Bar.Bar').findById(results._id).populate('array').exec(function(err, res) {
+      return mongoose.mtModel('tenant1.subname', 'Bar.Bar').findById(results._id).populate('array').exec(function(err, res) {
         res.array[0].title.should.equal('My Foo');
         return done();
       });
@@ -166,7 +166,7 @@ describe('Multitenant', function() {
   });
   it('should handle sub schema per tenant', function(done) {
     var barClass, myBar;
-    barClass = mongoose.mtModel('tenant1', 'Bar.Bar');
+    barClass = mongoose.mtModel('tenant1.subname', 'Bar.Bar');
     myBar = new barClass({
       subs: [
         {
@@ -175,7 +175,7 @@ describe('Multitenant', function() {
       ]
     });
     return myBar.save(function(err, results) {
-      return mongoose.mtModel('tenant1', 'Bar.Bar').findById(results._id).populate('subs.foo').exec(function(err, res) {
+      return mongoose.mtModel('tenant1.subname', 'Bar.Bar').findById(results._id).populate('subs.foo').exec(function(err, res) {
         res.subs[0].foo.title.should.equal('My Foo');
         return done();
       });
