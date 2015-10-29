@@ -2,9 +2,9 @@
   "name": "mongoose-multitenant",
   "version": "0.8.1",
   "description": "Wrapper for Mongoose that allows for easy horizontal multitenancy (collection prefix per tenant)",
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/jraede/mongoose-multitenant.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jraede/mongoose-multitenant.git"
   },
   "main": "index.js",
   "scripts": {
@@ -26,10 +26,11 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "mongoose-schema-extend": "~0.1.7",
+    "async": "^1.5.0",
     "dot-component": "~0.1.0",
-    "underscore": "~1.5.2",
-    "owl-deepcopy": "0.0.2"
+    "mongoose-schema-extend": "~0.1.7",
+    "owl-deepcopy": "0.0.2",
+    "underscore": "~1.5.2"
   },
   "devDependencies": {
     "grunt": "~0.4.2",
@@ -39,9 +40,9 @@
     "grunt-sed": "~0.1.1",
     "semver": "~2.2.1",
     "should": "~2.1.1",
-    "mongoose": "~3.8.3"
+    "mongoose": "~4.0.7"
   },
   "peerDependencies": {
-    "mongoose": ">=3.x"
+    "mongoose": ">=4.x"
   }
 }
